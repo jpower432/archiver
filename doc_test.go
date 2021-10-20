@@ -36,7 +36,7 @@ func ExampleArchive() {
 // contents to a folder on disk using the default configuration.
 // The archive format is determined automatically.
 func ExampleUnarchive() {
-	err := Unarchive("blog_site.zip", "extracted/mysite")
+	err := Unarchive("blog_site.zip", "extracted/mysite", nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -37,7 +37,7 @@ func TestDefaultTar_Unarchive_HardlinkSuccess(t *testing.T) {
 	}
 	defer os.RemoveAll(destination)
 
-	err = archiver.DefaultTar.Unarchive(source, destination)
+	err = archiver.DefaultTar.Unarchive(source, destination, nil)
 	if err != nil {
 		t.Fatalf("unarchiving '%s' to '%s': %v", source, destination, err)
 	}

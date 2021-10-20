@@ -80,7 +80,7 @@ type FilenameChecker interface {
 // Unarchiver is a type that can extract archive files
 // into a folder.
 type Unarchiver interface {
-	Unarchive(source, destination string) error
+	Unarchive(source, destination string, exclude []string) error
 }
 
 // Writer can write discrete byte streams of files to
@@ -202,7 +202,7 @@ func Archive(sources []string, destination string) error {
 
 // Unarchive unarchives the given archive file into the destination folder.
 // The archive format is selected implicitly.
-func Unarchive(source, destination string) error {
+func Unarchive(source, destination string, exclude []string) error {
 	uaIface, err := ByExtension(source)
 	if err != nil {
 		return err
@@ -211,7 +211,7 @@ func Unarchive(source, destination string) error {
 	if !ok {
 		return fmt.Errorf("format specified by source filename is not an archive format: %s (%T)", source, uaIface)
 	}
-	return u.Unarchive(source, destination)
+	return u.Unarchive(source, destination, exclude)
 }
 
 // Walk calls walkFn for each file within the given archive file.

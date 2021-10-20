@@ -40,9 +40,9 @@ func (tbr *TarBrotli) Archive(sources []string, destination string) error {
 // Unarchive unpacks the compressed tarball at
 // source to destination. Destination will be
 // treated as a folder name.
-func (tbr *TarBrotli) Unarchive(source, destination string) error {
+func (tbr *TarBrotli) Unarchive(source, destination string, exclude []string) error {
 	tbr.wrapReader()
-	return tbr.Tar.Unarchive(source, destination)
+	return tbr.Tar.Unarchive(source, destination, exclude)
 }
 
 // Walk calls walkFn for each visited item in archive.

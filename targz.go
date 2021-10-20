@@ -48,9 +48,9 @@ func (tgz *TarGz) Archive(sources []string, destination string) error {
 // Unarchive unpacks the compressed tarball at
 // source to destination. Destination will be
 // treated as a folder name.
-func (tgz *TarGz) Unarchive(source, destination string) error {
+func (tgz *TarGz) Unarchive(source, destination string, exclude []string) error {
 	tgz.wrapReader()
-	return tgz.Tar.Unarchive(source, destination)
+	return tgz.Tar.Unarchive(source, destination, exclude)
 }
 
 // Walk calls walkFn for each visited item in archive.

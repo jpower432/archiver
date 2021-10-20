@@ -39,9 +39,9 @@ func (tzst *TarZstd) Archive(sources []string, destination string) error {
 // Unarchive unpacks the compressed tarball at
 // source to destination. Destination will be
 // treated as a folder name.
-func (tzst *TarZstd) Unarchive(source, destination string) error {
+func (tzst *TarZstd) Unarchive(source, destination string, exclude []string) error {
 	tzst.wrapReader()
-	return tzst.Tar.Unarchive(source, destination)
+	return tzst.Tar.Unarchive(source, destination, exclude)
 }
 
 // Walk calls walkFn for each visited item in archive.

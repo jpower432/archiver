@@ -276,7 +276,18 @@ func TestArchiveUnarchive(t *testing.T) {
 			t.Errorf("%s (%T): not an Archiver and Unarchiver", af, af)
 			continue
 		}
-		testArchiveUnarchive(t, au)
+		testArchiveUnarchive(t, au, nil)
+	}
+}
+
+func TestArchiveUnarchiveWithExcludes(t *testing.T) {
+	for _, af := range archiveFormats {
+		au, ok := af.(archiverUnarchiver)
+		if !ok {
+			t.Errorf("%s (%T): not an Archiver and Unarchiver", af, af)
+			continue
+		}
+		testArchiveUnarchive(t, au, []string{"proverbs"})
 	}
 }
 
@@ -301,7 +312,7 @@ func TestArchiveUnarchiveWithFolderPermissions(t *testing.T) {
 	TestArchiveUnarchive(t)
 }
 
-func testArchiveUnarchive(t *testing.T, au archiverUnarchiver) {
+func testArchiveUnarchive(t *testing.T, au archiverUnarchiver, exclude []string) {
 	auStr := fmt.Sprintf("%s", au)
 
 	tmp, err := ioutil.TempDir("", "archiver_test")
@@ -323,13 +334,16 @@ func testArchiveUnarchive(t *testing.T, au archiverUnarchiver) {
 	// Test extracting archive
 	dest := filepath.Join(tmp, "extraction_test_"+auStr)
 	_ = os.Mkdir(dest, 0755)
-	err = au.Unarchive(outfile, dest)
+	err = au.Unarchive(outfile, dest, exclude)
 	if err != nil {
 		t.Fatalf("[%s] extracting archive [%s -> %s]: didn't expect an error, but got: %v", auStr, outfile, dest, err)
 	}
 
 	// Check that what was extracted is what was compressed
 	symmetricTest(t, auStr, dest, true, true)
+
+	// Check that excluded files were not unarchived
+	exclusionTest(t, dest, exclude)
 }
 
 /*
@@ -452,6 +466,29 @@ func symmetricTest(t *testing.T, formatName, dest string, testSymlinks, testMode
 	}
 }
 
+func exclusionTest(t *testing.T, dir string, exclude []string) {
+
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("traversing %s: %v", path, err)
+		}
+		if info == nil {
+			return fmt.Errorf("no file info")
+		}
+		for _, epath := range exclude {
+			if within(epath, path) {
+				return fmt.Errorf("path %s found in unarchived data that should be excluded", path)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestUnarchiveWithStripComponents(t *testing.T) {
 	testArchives := []string{
 		"testdata/sample.rar",
@@ -494,7 +531,7 @@ func TestUnarchiveWithStripComponents(t *testing.T) {
 
 		u := f.(Unarchiver)
 
-		if err := u.Unarchive(archiveName, to); err != nil {
+		if err := u.Unarchive(archiveName, to, nil); err != nil {
 			fmt.Println(err)
 		}
 
@@ -540,7 +577,7 @@ func CheckFilenames(archiveName string) bool {
 	// clean the destination folder after this test
 	defer os.RemoveAll("testdata/testarchives/destarchives/")
 
-	err := Unarchive(archiveName, "testdata/testarchives/destarchives/")
+	err := Unarchive(archiveName, "testdata/testarchives/destarchives/", nil)
 	if err != nil {
 		fmt.Println(err)
 	}

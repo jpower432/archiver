@@ -128,7 +128,7 @@ func (t *Tar) Archive(sources []string, destination string) error {
 
 // Unarchive unpacks the .tar file at source to destination.
 // Destination will be treated as a folder name.
-func (t *Tar) Unarchive(source, destination string) error {
+func (t *Tar) Unarchive(source, destination string, exclude []string) error {
 	if !fileExists(destination) && t.MkdirAll {
 		err := mkdir(destination, 0755)
 		if err != nil {
@@ -160,7 +160,7 @@ func (t *Tar) Unarchive(source, destination string) error {
 	defer t.Close()
 
 	for {
-		err := t.untarNext(destination)
+		err := t.untarNext(destination, exclude)
 		if err == io.EOF {
 			break
 		}
@@ -221,7 +221,7 @@ func (t *Tar) addTopLevelFolder(sourceArchive, destination string) (string, erro
 	return destination, nil
 }
 
-func (t *Tar) untarNext(destination string) error {
+func (t *Tar) untarNext(destination string, exclude []string) error {
 	f, err := t.Read()
 	if err != nil {
 		return err // don't wrap error; calling loop must break on io.EOF
@@ -248,6 +248,14 @@ func (t *Tar) untarNext(destination string) error {
 			header.Name = header.Name[slash+1:]
 		}
 	}
+
+	// return nil if the file is within the exclude paths
+	for _, path := range exclude {
+		if within(path, header.Name) {
+			return nil
+		}
+	}
+
 	return t.untarFile(f, destination, header)
 }
 

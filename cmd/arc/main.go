@@ -15,6 +15,20 @@ import (
 	"github.com/nwaples/rardecode"
 )
 
+// Define exclude type for slice flag
+type Exclude struct {
+	list []string
+}
+
+func (e *Exclude) String() string {
+	return ""
+}
+
+func (e *Exclude) Set(value string) error {
+	e.list = append(e.list, value)
+	return nil
+}
+
 var (
 	compressionLevel       int
 	overwriteExisting      bool
@@ -24,6 +38,7 @@ var (
 	stripComponents        int
 	continueOnError        bool
 	specifyFileType        string
+	exclude                Exclude
 )
 
 var (
@@ -41,6 +56,7 @@ func init() {
 	flag.IntVar(&stripComponents, "strip-components", 0, "Strip number of leading paths")
 	flag.BoolVar(&continueOnError, "allow-errors", true, "Log errors and continue processing")
 	flag.StringVar(&specifyFileType, "ext", "", "specify file type")
+	flag.Var(&exclude, "exclude", "specify excluded files for unarchiving")
 }
 
 func main() {
@@ -91,7 +107,7 @@ func main() {
 		if !ok {
 			fatalf("the unarchive command does not support the %s format", iface)
 		}
-		err = u.Unarchive(flag.Arg(1), flag.Arg(2))
+		err = u.Unarchive(flag.Arg(1), flag.Arg(2), exclude.list)
 
 	case "extract":
 		e, ok := iface.(archiver.Extractor)
